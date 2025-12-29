@@ -1,0 +1,14 @@
+name = "aex402_sdk"
+version = "1.0.0"
+description = "Gleam SDK for the AeX402 Hybrid StableSwap AMM on Solana"
+licences = ["MIT"]
+
+# Gleam compiles to both Erlang and JavaScript
+target = "erlang"
+
+[dependencies]
+gleam_stdlib = ">= 0.34.0 and < 2.0.0"
+gleam_crypto = ">= 1.0.0 and < 2.0.0"
+
+[dev-dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
