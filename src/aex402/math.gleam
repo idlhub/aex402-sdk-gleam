@@ -80,15 +80,28 @@ fn calc_d_iterate(
 /// Calculate output amount y given input x for swap using Newton's method
 /// Returns Ok(y) on convergence, Error(Nil) if fails to converge
 pub fn calc_y(x_new: Int, d: Int, amp: Int) -> Result(Int, Nil) {
-  let ann = amp * 4
+  // Guard against zero inputs
+  case x_new == 0 {
+    True -> Error(Nil)
+    False -> {
+      let ann = amp * 4
+      // Guard against zero amp
+      case ann == 0 {
+        True -> Error(Nil)
+        False -> {
+          // c = d^3 / (4 * x_new * ann)
+          let c1 = d * d / { x_new * 2 }
+          let c = c1 * d / { ann * 2 }
+          calc_y_inner(x_new, d, ann, c)
+        }
+      }
+    }
+  }
+}
 
-  // c = d^3 / (4 * x_new * ann)
-  let c1 = d * d / { x_new * 2 }
-  let c = c1 * d / { ann * 2 }
-
+fn calc_y_inner(x_new: Int, d: Int, ann: Int, c: Int) -> Result(Int, Nil) {
   // b = x_new + d / ann
   let b = x_new + d / ann
-
   calc_y_iterate(d, c, b, d, constants.newton_iterations)
 }
 
@@ -264,17 +277,23 @@ pub fn calc_price_impact(
   amp: Int,
   fee_bps: Int,
 ) -> Result(Int, Nil) {
-  use amount_out <- result.try(simulate_swap(
-    bal_in,
-    bal_out,
-    amount_in,
-    amp,
-    fee_bps,
-  ))
+  // Guard against division by zero
+  case amount_in == 0 {
+    True -> Error(Nil)
+    False -> {
+      use amount_out <- result.try(simulate_swap(
+        bal_in,
+        bal_out,
+        amount_in,
+        amp,
+        fee_bps,
+      ))
 
-  // Price impact = 1 - (amount_out / amount_in) in 1e9 units
-  let ratio = amount_out * 1_000_000_000 / amount_in
-  Ok(1_000_000_000 - ratio)
+      // Price impact = 1 - (amount_out / amount_in) in 1e9 units
+      let ratio = amount_out * 1_000_000_000 / amount_in
+      Ok(1_000_000_000 - ratio)
+    }
+  }
 }
 
 // ============================================================================
